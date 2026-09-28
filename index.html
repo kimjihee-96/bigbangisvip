@@ -5,6 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>나의 아이디어</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -40,16 +45,16 @@
         
         <section id="features">
             <h2>작물 수익 예측 기능</h2>
-            <ul>
-                <li>
+            <ul class="features-list">
+                <li class="feature-card">
                     <h3>재배 환경에 맞는 작물 추천</h3>
                     <p>재배 지역과 농지 정보를 입력하면 기후와 재배 조건을 분석해 적합한 작물을 추천합니다.</p>
                 </li>
-                <li>
+                <li class="feature-card">
                     <h3>작물별 예상 수익 비교</h3>
                     <p>작물별 예상 생산량과 판매 가격, 생산비를 바탕으로 예상 수익을 계산하고 비교합니다.</p>
                 </li>
-                <li>
+                <li class="feature-card">
                     <h3>농산물 가격 동향 확인</h3>
                     <p>농산물의 과거 가격 변화와 최근 시세를 확인해 재배할 작물을 선택하고 출하 계획을 세우는 데 도움을 줍니다.</p>
                 </li>
@@ -65,7 +70,7 @@
             </ol>
         </section>
         
-        <section id="subscribe">
+        <section id="subscribe" class="subscribe-card">
             <h2> 작물 수익 예측 소식 받기</h2>
             <form>
                 <label for="email">이메일</label>
