@@ -217,4 +217,31 @@ button:active{
         /* 모바일에서도 버튼의 누르는 영역이 너무 낮아지지 않게 설정*/
         min-height: 48px;
     }
+
+    #subscribeMessage{
+        margin-top: 16px;
+        color: #555763;
+    }
+
+    #subscribeMessage.is-success{
+        color: #2c6143;
+        background-color: #dbf1ca;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 700;
+    }
+
+    #subscribeMessage.is-error{
+        color: #f8f7f4;
+        background-color: #3f835d;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 700;
+    }
+
+    #subscribeButton:disabled{
+        color: #a5a5a5;
+        background-color: #e0e0e0;
+        cursor: not-allowed;
+    }
 }
