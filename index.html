@@ -45,20 +45,61 @@
         
         <section id="features">
             <h2>작물 수익 예측 기능</h2>
-            <ul class="features-list">
-                <li class="feature-card">
-                    <h3>재배 환경에 맞는 작물 추천</h3>
-                    <p>재배 지역과 농지 정보를 입력하면 기후와 재배 조건을 분석해 적합한 작물을 추천합니다.</p>
-                </li>
-                <li class="feature-card">
-                    <h3>작물별 예상 수익 비교</h3>
-                    <p>작물별 예상 생산량과 판매 가격, 생산비를 바탕으로 예상 수익을 계산하고 비교합니다.</p>
-                </li>
-                <li class="feature-card">
-                    <h3>농산물 가격 동향 확인</h3>
-                    <p>농산물의 과거 가격 변화와 최근 시세를 확인해 재배할 작물을 선택하고 출하 계획을 세우는 데 도움을 줍니다.</p>
-                </li>
-            </ul>
+
+            <div class="tabs" role="tablist" aria-label="작물 수익 예측 기능">
+                <button 
+                    id="tab-practice"
+                    class="tab is-active"
+                    type="button"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="feature-practice"
+                    data-target="feature-practice">
+                    수익 예측
+                </button>
+
+                <button 
+                    id="tab-audience"
+                    class="tab"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="feature-audience"
+                    data-target="feature-audience">
+                    이벤트 활용
+                </button>
+
+                <button 
+                    id="tab-subscribe"
+                    class="tab"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="feature-feedback"
+                    data-target="feature-feedback">
+                    소식 신청
+                </button>
+            </div>
+
+            <div 
+                id="feature-practice"
+                class="panel"
+                role="tabpanel"
+                aria-labelledby="tab-practice"
+                hidden>
+                <h3>수익 예측</h3>
+                <p>재배 지역과 농지 정보를 입력하면 기후와 재배 조건을 분석해 적합한 작물을 추천하고, 작물별 예상 생산량과 판매 가격, 생산비를 바탕으로 예상 수익을 계산합니다.</p>
+            </div>
+
+            <div 
+                id="feature-feedback"
+                class="panel"
+                role="tabpanel"
+                aria-labelledby="tab-feedback"
+                hidden>
+                <h3>이벤트 활용</h3>
+                <p>재배 지역과 농지 정보를 입력하면 기후와 재배 조건을 분석해 적합한 작물을 추천하고, 작물별 예상 생산량과 판매 가격, 생산비를 바탕으로 예상 수익을 계산합니다.</p>
+            </div>
         </section>
         
         <section id="steps">
@@ -69,7 +110,39 @@
                 <li>재배 환경과 예상 수익을 고려해 작물을 선택하고 영농 계획을 세웁니다.</li>
             </ol>
         </section>
-        
+
+        <section id="event-practice">
+            <h2>작물 수익 예측</h2>
+
+            <div class="event-grid">
+                <article class="event-card">
+                    <h3>화면 테마</h3>
+                    <button id="themeButton" type="button">다크 테마로 바꾸기</button>
+                </article>
+
+                <article class="event-card">
+                    <h3>작물 정보</h3>
+                    <label for="nickname">작물 이름</label>
+                    <input type="text" id="nickname" maxlength="10">
+                    <p id="nicknameCount" aria-live="polite">0 / 10</p>
+                </article>
+
+                <article class="event-card">
+                    <h3>정보 활용 동의</h3>
+                    <label class="agree-row">
+                        <input type="checkbox" id="agreeCheck">
+                        수익 예측을 위한 정보 입력에 동의합니다.
+                    </label>
+                    <p id="agreeMessage" aria-live="polite">
+                        동의 후 수익 예측을 시작할 수 있습니다.
+                    </p>
+                    <button id="startButton" type="button" disabled>
+                        수익 예측 결과 확인하기
+                    </button>
+                </article>
+            </div>
+        </section>
+            
         <section id="subscribe" class="subscribe-card">
             <h2> 작물 수익 예측 소식 받기</h2>
             <form id="subscribe-form">
