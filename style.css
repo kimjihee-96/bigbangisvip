@@ -193,11 +193,14 @@ button:active{
     display: flex;
     align-items: flex-start;
     gap: 8px;
+    width: 100%;
 }
 
-.agree-row input{
+.agree-row input[type="checkbox"] {
     flex: 0 0 auto;
-    margin-top: 6px;
+    width: 18px;
+    height: 18px;
+    margin: 6px 0 0;
 }
 
 #startButton:disabled{
