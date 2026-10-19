@@ -109,7 +109,7 @@ function activateTab(clickedTab) {
 
 function handleTabClick(event) {
     resetTabsAndPanels();
-    activateTab(event.currentTargt);
+    activateTab(event.currentTarget);
 }
 
 tabs.forEach(function (tab) {
