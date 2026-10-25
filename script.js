@@ -245,3 +245,132 @@ restartButton.addEventListener("click", () => {
     summaryQna.textContent = "";
     showStep(0);
 });
+
+const planSaveButton = document.querySelector("#plan-save");
+const savedPlanSection = document.querySelector("#saved-plans");
+const savedPlanList = document.querySelector("#saved-plan-list");
+const savedPlanEmpty = document.querySelector("#saved-plan-empty");
+const savedPlanMessage = document.querySelector("#saved-plan-message");
+const savedPlanDetail = document.querySelector("#saved-plan-detail");
+const savedPlanDetailText = document.querySelector("#saved-plan-detail-text");
+const savedPlanClose = document.querySelector("#saved-plan-close");
+const completedPlanStep = document.querySelector('#training-flow .step[data-step="4"]');
+
+const savedPlans = [];
+let savedPlanSerial = 0;
+
+function showSavedPlanMessage(message, isError) {
+    savedPlanMessage.textContent = message;
+    savedPlanMessage.classList.toggle("is-error", isError);
+}
+
+function renderSavedPlans() {
+    savedPlanList.textContent = "";
+    savedPlanEmpty.hidden = savedPlans.length > 0;
+
+    savedPlans.forEach(function (plan) {
+        const item = document.createElement("li");
+        const name = document.createElement("strong");
+        name.className = "plan-name";
+        name.textContent = plan.title;
+
+        const actions = document.createElement("div");
+        actions.className = "saved-plan-actions";
+
+        const openButton = document.createElement("button");
+        openButton.type = "button";
+        openButton.textContent = "내용 보기";
+
+        openButton.addEventListener("click", function () {
+            const levels = ["낮음", "보통", "높음"];
+            const cost = plan.qna
+                ? levels[Number(plan.qnaCount) - 1] + " 수준 반영"
+                : "미반영";
+
+            savedPlanDetailText.textContent = "작물 이름: " + plan.title
+                + "\n예측 기간: " + plan.duration + "개월"
+                + "\n생산비: " + cost;
+
+            savedPlanDetail.dataset.planId = String(plan.id);
+            savedPlanDetail.hidden = false;
+            showSavedPlanMessage("저장한 계획을 열었습니다.", false);
+            savedPlanDetail.scrollIntoView({ behavior: "smooth" });
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.textContent = "삭제";
+
+        deleteButton.addEventListener("click", function () {
+            const index = savedPlans.findIndex(function (item) {
+                return item.id === plan.id;
+            });
+
+            if (index === -1) return;
+
+            savedPlans.splice(index, 1);
+
+            if (savedPlanDetail.dataset.planId === String(plan.id)) {
+                savedPlanDetail.hidden = true;
+                savedPlanDetailText.textContent = "";
+            }
+
+            renderSavedPlans();
+            showSavedPlanMessage(plan.title + " 계획을 삭제했습니다.", false);
+        });
+
+        actions.append(openButton, deleteButton);
+        item.append(name, actions);
+        savedPlanList.append(item);
+    });
+}
+
+planSaveButton.addEventListener("click", function () {
+    if (completedPlanStep.hidden || !formData.title.trim()) {
+        showSavedPlanMessage(
+            "작물 이름과 예측 조건을 설정하고 완료한 뒤 저장해 주세요.",
+            true
+        );
+        return;
+    }
+
+    const plan = {
+        id: ++savedPlanSerial,
+        title: formData.title.trim(),
+        duration: formData.duration,
+        qna: formData.qna,
+        qnaCount: formData.qnaCount
+    };
+
+    const duplicated = savedPlans.some(function (item) {
+        return item.title === plan.title
+            && item.duration === plan.duration
+            && item.qna === plan.qna
+            && (!plan.qna || item.qnaCount === plan.qnaCount);
+    });
+
+    if (duplicated) {
+        showSavedPlanMessage(
+            "같은 조건의 계획이 이미 있습니다. 목록에서 내용을 보거나, 다시 설정해 다른 조건을 저장해 주세요.",
+            true
+        );
+        savedPlanSection.scrollIntoView({ behavior: "smooth" });
+        return;
+    }
+
+    savedPlans.push(plan);
+    renderSavedPlans();
+
+    showSavedPlanMessage(
+        plan.title + " 계획을 저장했습니다. ‘내용 보기’를 눌러 확인하세요.",
+        false
+    );
+
+    savedPlanSection.scrollIntoView({ behavior: "smooth" });
+});
+
+savedPlanClose.addEventListener("click", function () {
+    savedPlanDetail.hidden = true;
+});
+
+renderSavedPlans();

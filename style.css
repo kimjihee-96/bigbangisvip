@@ -451,3 +451,103 @@ body.dark .training-flow{
         background-color: #e0e0e0;
         cursor: not-allowed;
     }
+
+    .saved-plans {
+    margin-top: 40px;
+    padding: 24px;
+    border: 1px solid #81a984;
+    border-radius: 24px;
+    background-color: #f8f7f4;
+    min-width: 0;
+}
+
+.saved-plans [hidden] {
+    display: none;
+}
+
+.saved-plans p {
+    overflow-wrap: anywhere;
+}
+
+#saved-plan-list {
+    list-style: none;
+    padding: 0;
+}
+
+#saved-plan-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 16px;
+    border: 1px solid #81a984;
+    border-radius: 12px;
+}
+
+.plan-name {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.saved-plan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.saved-plans button {
+    min-height: 44px;
+    max-width: 100%;
+    white-space: normal;
+}
+
+#saved-plan-message {
+    color: #2c6143;
+    font-weight: 700;
+}
+
+#saved-plan-message.is-error {
+    color: #9d243d;
+}
+
+#saved-plan-detail {
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid #81a984;
+    border-radius: 12px;
+}
+
+#saved-plan-detail-text {
+    white-space: pre-line;
+}
+
+body.dark .saved-plans {
+    background-color: #24382c;
+    color: #fff;
+}
+
+body.dark #saved-plan-message {
+    color: #dbf1ca;
+}
+
+body.dark #saved-plan-message.is-error {
+    color: #ffb3b3;
+}
+
+@media (max-width: 768px) {
+    .saved-plans {
+        padding: 16px;
+    }
+
+    .saved-plan-actions {
+        width: 100%;
+    }
+
+    .saved-plan-actions button {
+        flex: 1;
+        min-width: 0;
+    }
+}
