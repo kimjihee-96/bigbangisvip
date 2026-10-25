@@ -151,6 +151,69 @@
                 </article>
             </div>
         </section>
+
+        <dialog id="recording-dialog" aria-labelledby="recording-description">
+             <h2 id="recording-description">정보 활용 안내</h2>
+             <p id="recording-description"> 작물 수익 예측에 필요한 재배 지역, 농지 면적과 작물을 설정합니다. 지금은 예측 조건을 입력하는 단계이며, 실제 수익 계산은 진행되지 않습니다.</p>
+             <div class="dialog-actions">
+                <button id="recording-cancel" type="button">돌아가기</button>
+                <button id="recording-confirm" type="button">확인하고 수익 예측 설정하기</button>
+            </div>
+        </dialog>
+
+        <section id="training-flow" class="training-flow" hidden>
+            <h2>작물 수익 예측 설정</h2>
+            <p class="progress" aria-label="설정 진행 단계">
+                <span class="progress-item">1 · 재배 정보</span>
+                <span class="progress-item">2 · 예측 조건</span>
+                <span class="progress-item">3 · 내용 확인</span>
+            </p>
+
+            <section class="step" data-step="1" hidden>
+                <h3>재배할 작물 정보를 입력해 주세요.</h3>
+                <label for="presentation-title">작물 이름</label>
+                <input id="presentation-title" type="text" placeholder="예: 감자, 고구마, 토마토" aria-describedby="title-error">
+                <p id="title-error" class="error-message" aria-live="polite"></p>
+                <button id="title-next" type="button">수익 예측 조건 선택하기</button>
+            </section>
+
+            <section class="step" data-step="2" hidden>
+                <h3>수익 예측 조건을 선택해 주세요.</h3>
+                <label for="duration-range">예측 기간</label>
+                <input id="duration-range" type="range" min="0" max="2" step="1" value="1">
+                <output id="duration-value" for="duration-range">6개월</output>
+                <label><input type="checkbox" id="qna-option">생산비를 포함하여 예측하기</label>
+                <fieldset id="qna-options" hidden>
+                    <legend>예상 생산비 수준</legend>
+                    <label><input type="radio" name="qna-count" value="1">낮음</label>
+                    <label><input type="radio" name="qna-count" value="2" checked>보통</label>
+                    <label><input type="radio" name="qna-count" value="3">높음</label>
+                </fieldset>
+                <div class="step-actions">
+                    <button id="option-pre" type="button">작물 이름 수정하기</button>
+                    <button id="option-next" type="button">설정 내용 확인하기</button>
+                 </div>
+            </section>
+            
+            <section class="step" data-step="3" hidden>
+                <h3>입력한 내용을 확인해 주세요.</h3>
+                <div class="summary-list">
+                    <div><span>작물 이름</span><strong id="summary-title"></strong></div>
+                    <div><span>예측 기간</span><strong id="summary-duration"></strong></div>
+                    <div><span>생산비 반영</span><strong id="summary-qna"></strong></div>
+                </div>
+                 <div class="step-actions">
+                    <button id="summary-prev" type="button">수정하기</button>
+                    <button id="finish-button" type="button">설정 완료하기</button>
+                </div>
+            </section>
+
+            <section class="step complete-step" data-step="4" hidden>
+                <h3>작물 수익 예측 설정이 완료되었습니다.</h3>
+                <p>작물 이름과 예측 조건을 확인했습니다. 필요하면 다시 설정할 수 있습니다.</p>
+                <button id="restart-button" type="button">다시 설정하기</button>
+            </section>
+        </section>
             
         <section id="subscribe" class="subscribe-card">
             <h2> 작물 수익 예측 소식 받기</h2>

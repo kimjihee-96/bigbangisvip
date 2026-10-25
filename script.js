@@ -115,3 +115,133 @@ function handleTabClick(event) {
 tabs.forEach(function (tab) {
     tab.addEventListener("click", handleTabClick);
 });
+
+const traingFlow = document.querySelector("#training-flow");
+const flowSteps = traingFlow.querySelectorAll(".step");
+const progressItems = traingFlow.querySelectorAll(".progress__item");
+const titleInput = document.querySelector("#presentation-title");
+const titleError = document.querySelector("#title-error");
+const titleNext = document.querySelector("#title-next");
+const durationRange = document.querySelector("#duration-range");
+const durationValue = document.querySelector("#duration-value");
+const qnaOption = document.querySelector("#qna-option");
+const qnaOptions = document.querySelector("#qna-options");
+const optionPrev = document.querySelector("#option-prev");
+const optionNext = document.querySelector("#option-next");
+const summaryPrev = document.querySelector("#summary-prev");
+const finishButton = document.querySelector("#finish-button");
+const restartButton = document.querySelector("#restart-button");
+const summaryTitle = document.querySelector("#summary-title");
+const summaryDuration = document.querySelector("#summary-duration");
+const summaryQna = document.querySelector("#summary-qna");
+const durationValues = ["3", "6", "12"];
+
+const formData = {
+    title: "", duration: "6", qna: false, qnaCount: "2"
+};
+
+function showStep(index) {
+    flowSteps.forEach((step, i) => { step.hidden = i !== index; });
+    progressItems.forEach((item, i) => {
+        item.classList.toggle("is-active", i === index);
+    });
+}
+
+const recordingDialog = document.querySelector("#recording-dialog");
+const recordingCancel = document.querySelector("#recording-cancel");
+const recordingConfirm = document.querySelector("#recording-confirm");
+
+function revokeRecordingAgreement() {
+    agreeCheck.checked = false;
+    traingFlow.hidden = true;
+    handleAgreeChange();
+    agreeCheck.focus();
+}
+
+startButton.addEventListener("click", () => {
+    if (!agreeCheck.checked) return;
+    recordingDialog.showModal();
+});
+
+recordingCancel.addEventListener("click", () => {
+    recordingDialog.close();
+    revokeRecordingAgreement();
+});
+
+recordingDialog.addEventListener("cancel", revokeRecordingAgreement);
+
+recordingConfirm.addEventListener("click", () => {
+    if (!agreeCheck.checked) return;
+    recordingDialog.close();
+    traingFlow.hidden = false;
+    showStep(0);
+    traingFlow.scrollIntoView({ behavior: "smooth" });
+    titleInput.focus();
+});
+
+function validateTitle() {
+    const value = titleInput.value.trim();
+    if (!value) {
+        titleError.textContent = "작물 이름을 입력해 주세요.";
+        titleInput.classList.add("has-error");
+        titleInput.focus();
+        return false;
+    }
+    titleError.textContent = "";
+    titleInput.classList.remove("has-error");
+    formData.title = value;
+    return true;
+}
+
+titleNext.addEventListener("click", () => {
+    if (!validateTitle()) return;
+    showStep(1);
+});
+
+durationRange.addEventListener("input", () => {
+    durationValue.value = durationValues[durationRange.value] + "개월";
+});
+
+qnaOption.addEventListener("change", () => {
+    qnaOptions.hidden = !qnaOption.checked;
+});
+
+optionPrev.addEventListener("click", () => showStep(0));
+
+optionNext.addEventListener("click", () => {
+    formData.duration = durationValues[durationRange.value];
+    formData.qna = qnaOption.checked;
+    const count = document.querySelector('input[name="qna-count"]:checked');
+    formData.qnaCount = count.value;
+
+    const costLevels = ["낮음", "보통", "높음"];
+
+    summaryTitle.textContent = formData.title;
+    summaryDuration.textContent = formData.duration + "개월";
+    summaryQna.textContent = formData.qna
+        ? costLevels[Number(formData.qnaCount) - 1] + " 수준 반영"
+        : "미반영";
+
+    showStep(2);
+});
+
+summaryPrev.addEventListener("click", () => showStep(1));
+finishButton.addEventListener("click", () => showStep(3));
+restartButton.addEventListener("click", () => {
+    formData.title = "";
+    formData.duration = "6";
+    formData.qna = false;
+    formData.qnaCount = "2";
+    titleInput.value = "";
+    titleError.textContent = "";
+    titleInput.classList.remove("has-error");
+    durationRange.value = "1";
+    durationValue.value = "6개월";
+    qnaOption.checked = false;
+    qnaOptions.hidden = true;
+    document.querySelector('input[name="qna-count"][value="2"]').checked = true;
+    summaryTitle.textContent = "";
+    summaryDuration.textContent = "";
+    summaryQna.textContent = "";
+    showStep(0);
+});
