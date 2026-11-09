@@ -122,6 +122,15 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 
 .step-actions, .dialog-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .step-actions-end { justify-content: flex-end; }
+.submit-status {
+  min-height: 24px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.submit-status.is-success { color: var(--success);}
+.submit-status.is-error { color: var(--danger); }
 .summary-list { margin: 0; border-top: 1px solid var(--line); }
 .summary-list div { display: flex; justify-content: space-between; gap: 18px; padding: 15px 0; border-bottom: 1px solid var(--line); }
 .summary-list dt { flex: none; color: var(--muted); }

@@ -20,11 +20,6 @@ const planList = document.querySelector("#plan-list");
 const archiveStatus = document.querySelector("#archive-status");
 let currentStep = 1;
 
-const saveButton = document.querySelector("#save-plan");
-const submitStatus = document.querySelector("#submit-status");
-const completeMessage = document.querySelector("#complete-message");
-let isSubmitting = false;
-
 function readPlans() {
   try {
     const stored = JSON.parse(localStorage.getItem(storageKey) || "[]");
