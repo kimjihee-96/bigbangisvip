@@ -1,376 +1,437 @@
-const serviceName = "청년 농부를 위한 작물 수익 예측 서비스";
-let isSubscribed = false;
-let submitCount = 0;
-
-function makeSubscribeMessage(email, subscribed) {
-    if (subscribed == true) {
-        return email + "로 작물별 가격 동향과 수익 예측 소식 신청이 완료되었습니다.";
-    }
-    
-    return "이메일을 입력한 뒤 신청해주세요.";
-}
-
-const subscribeForm = document.querySelector("#subscribe-form");
-const emailInput = document.querySelector("#email");
-const subscribeButton = document.querySelector("#subscribeButton");
-const subscribeMessage = document.querySelector("#subscribeMessage");
-
-function handleSubscribe(event) {
-    event.preventDefault();
-
-    const subscriberEmail = emailInput.value.trim();
-
-    if (subscriberEmail === "") {
-        subscribeMessage.textContent =
-            "이메일을 입력한 뒤 신청해주세요.";
-        emailInput.focus();
-        return;
-    }
-
-    isSubscribed = true;
-    submitCount += 1;
-
-    subscribeMessage.textContent =
-        makeSubscribeMessage(subscriberEmail, isSubscribed);
-
-    subscribeMessage.classList.add("is-success");
-
-    subscribeButton.textContent = "신청 완료";
-    subscribeButton.disabled = true;
-}
-
-subscribeForm.addEventListener("submit", handleSubscribe);
-
-const themeButton = document.querySelector("#themeButton");
-const nicknameInput = document.querySelector("#nickname");
-const nicknameCount = document.querySelector("#nicknameCount");
-const agreeCheck = document.querySelector("#agreeCheck");
-const agreeMessage = document.querySelector("#agreeMessage");
-const startButton = document.querySelector("#startButton");
-
-function handleThemeButtonClick() {
-    const isDark = document.body.classList.toggle("dark");
-
-    themeButton.textContent = isDark ? "라이트 테마로 바꾸기" : "다크 테마로 바꾸기";
-}
-
-themeButton.addEventListener("click", handleThemeButtonClick);
-
-function handleNicknameInput() {
-    const maxLength = nicknameInput.maxLength;
-    const currentLength = Math.min(nicknameInput.value.length, maxLength);
-    
-    nicknameCount.textContent = currentLength + " / " + maxLength;
-}
-
-nicknameInput.addEventListener("input", handleNicknameInput);
-
-function handleAgreeCheckChange() {
-    const agreed = agreeCheck.checked;
-
-    startButton.disabled = !agreed;
-    agreeMessage.textContent = agreed 
-    ? "수익 예측을 시작할 수 있습니다"
-    : "동의 후 수익 예측을 시작할 수 있습니다.";
-
-    if(agreed) {
-        agreeMessage.classList.remove("is-ready");
-    } else {
-        agreeMessage.classList.add("is-ready");
-    }
-}
-
-agreeCheck.addEventListener("change", handleAgreeCheckChange);
-
-const tabs = document.querySelectorAll(".tab");
-const panels = document.querySelectorAll(".panel");
-
-function resetTabsAndPanels() {
-    tabs.forEach(function (tab) {
-        tab.classList.remove("is-active");
-        tab.setAttribute("aria-selected", "false")
-    });
-    panels.forEach(function (panel) {
-        panel.classList.remove("is-active");
-        panel.hidden = true;
-    });
-}
-
-function activateTab(clickedTab) {
-    const targetSelector = clickedTab.dataset.target;
-    const targetpanel = document.querySelector(targetSelector);
-
-    clickedTab.classList.add("is-active");
-    clickedTab.setAttribute("aria-selected", "true");
-
-    targetpanel.classList.add("is-active");
-    targetpanel.hidden = false;
-}
-
-function handleTabClick(event) {
-    resetTabsAndPanels();
-    activateTab(event.currentTarget);
-}
-
-tabs.forEach(function (tab) {
-    tab.addEventListener("click", handleTabClick);
-});
-
-const traingFlow = document.querySelector("#training-flow");
-const flowSteps = traingFlow.querySelectorAll(".step");
-const progressItems = traingFlow.querySelectorAll(".progress__item");
+const storageKey = "crop-profit-plans-v1";
+const form = document.querySelector("#plan-form");
+const steps = [...document.querySelectorAll(".flow-step")];
+const progressItems = [...document.querySelectorAll(".progress-item")];
 const titleInput = document.querySelector("#presentation-title");
 const titleError = document.querySelector("#title-error");
-const titleNext = document.querySelector("#title-next");
-const durationRange = document.querySelector("#duration-range");
-const durationValue = document.querySelector("#duration-value");
+const titleField = titleInput.closest(".field");
+const titleHelp = document.querySelector("#title-help");
+const titleCount = document.querySelector("#title-count");
+const nicknameInput = document.querySelector("#nickname");
+const nicknameCount = document.querySelector("#nickname-count");
 const qnaOption = document.querySelector("#qna-option");
 const qnaOptions = document.querySelector("#qna-options");
-const optionPrev = document.querySelector("#option-prev");
-const optionNext = document.querySelector("#option-next");
-const summaryPrev = document.querySelector("#summary-prev");
-const finishButton = document.querySelector("#finish-button");
-const restartButton = document.querySelector("#restart-button");
-const summaryTitle = document.querySelector("#summary-title");
-const summaryDuration = document.querySelector("#summary-duration");
-const summaryQna = document.querySelector("#summary-qna");
-const durationValues = ["3", "6", "12"];
+const planList = document.querySelector("#plan-list");
+const emptyState = document.querySelector("#empty-state");
+const planCount = document.querySelector("#plan-count");
+const archiveStatus = document.querySelector("#archive-status");
+const planDialog = document.querySelector("#plan-dialog");
 
-const formData = {
-    title: "", duration: "6", qna: false, qnaCount: "2"
-};
+const navLinks = document.querySelectorAll(".main-nav a");
 
-function showStep(index) {
-    flowSteps.forEach((step, i) => { step.hidden = i !== index; });
-    progressItems.forEach((item, i) => {
-        item.classList.toggle("is-active", i === index);
-    });
+const menuToggle = document.querySelector("#menu-toggle");
+const mainNav = document.querySelector("#main-nav");
+
+const filterButtons = document.querySelectorAll(".filter-button");
+let currentFilter = "all";
+
+const saveButton = document.querySelector("#save-plan");
+const submitStatus = document.querySelector("#submit-status");
+const completeMessage = document.querySelector("#complete-message");
+const saveError = document.querySelector("#save-error");
+
+function readPlans() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    if (!Array.isArray(stored)) return [];
+    return stored.filter((plan) => plan && typeof plan.id === "string" && typeof plan.title === "string")
+      .map((plan) => ({
+        id: plan.id,
+        title: plan.title.slice(0, 60),
+        nickname: typeof plan.nickname === "string" ? plan.nickname.slice(0, 10) : "",
+        duration: ["3", "6", "12"].includes(plan.duration) ? plan.duration : "6",
+        qna: plan.qna === true,
+        qnaCount: ["1", "2", "3"].includes(plan.qnaCount) ? plan.qnaCount : "2",
+        cancelled: plan.cancelled === true,
+        createdAt: typeof plan.createdAt === "string" ? plan.createdAt : ""
+      }));
+  } catch {
+    return [];
+  }
 }
 
-const recordingDialog = document.querySelector("#recording-dialog");
-const recordingCancel = document.querySelector("#recording-cancel");
-const recordingConfirm = document.querySelector("#recording-confirm");
+let plans = readPlans();
+let currentStep = 1;
+let isSubmitting = false;
 
-function revokeRecordingAgreement() {
-    agreeCheck.checked = false;
-    traingFlow.hidden = true;
-    handleAgreeChange();
-    agreeCheck.focus();
+function savePlans() {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(plans));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-startButton.addEventListener("click", () => {
-    if (!agreeCheck.checked) return;
-    recordingDialog.showModal();
-});
+function showStep(number) {
+  currentStep = number;
+  steps.forEach((step) => { step.hidden = Number(step.dataset.step) !== number; });
+  progressItems.forEach((item, index) => {
+    const isCurrent = index === number - 1;
+    item.classList.toggle("is-current", isCurrent);
+    item.classList.toggle("is-done", index < number - 1);
+    if (isCurrent && number <= 3) item.setAttribute("aria-current", "step");
+    else item.removeAttribute("aria-current");
+  });
+  const heading = steps[number - 1].querySelector("h3");
+  heading.tabIndex = -1;
+  heading.focus({ preventScroll: true });
+  document.querySelector("#planner").scrollIntoView({ block: "start", behavior: "smooth" });
+}
 
-recordingCancel.addEventListener("click", () => {
-    recordingDialog.close();
-    revokeRecordingAgreement();
-});
+function updateTitleExperience() {
+  const length = titleInput.value.length;
+  const valid = titleInput.value.trim().length >= 1 && length <= 60;
+  const hasError = titleInput.getAttribute("aria-invalid") === "true";
 
-recordingDialog.addEventListener("cancel", revokeRecordingAgreement);
-
-recordingConfirm.addEventListener("click", () => {
-    if (!agreeCheck.checked) return;
-    recordingDialog.close();
-    traingFlow.hidden = false;
-    showStep(0);
-    traingFlow.scrollIntoView({ behavior: "smooth" });
-    titleInput.focus();
-});
+  titleCount.textContent = `${length} / 60자`;
+  titleField.classList.toggle("has-error", hasError);
+  titleField.classList.toggle("is-valid", valid && !hasError);
+  titleHelp.textContent = hasError
+    ? "작물 이름 입력 조건을 다시 확인해 주세요."
+    : valid
+      ? "입력 조건을 충족했습니다."
+      : "작물 이름을 1자 이상 60자 이하로 입력해 주세요.";
+}
 
 function validateTitle() {
-    const value = titleInput.value.trim();
-    if (!value) {
-        titleError.textContent = "작물 이름을 입력해 주세요.";
-        titleInput.classList.add("has-error");
-        titleInput.focus();
-        return false;
-    }
-    titleError.textContent = "";
-    titleInput.classList.remove("has-error");
-    formData.title = value;
-    return true;
+  const title = titleInput.value.trim();
+  if (!title) {
+    titleError.textContent = "작물 이름을 입력해 주세요. 공백만으로는 저장할 수 없습니다.";
+    titleInput.setAttribute("aria-invalid", "true");
+    updateTitleExperience();
+    titleInput.focus();
+    return false;
+  }
+  if (titleInput.value.length > 60) {
+    titleError.textContent = "작물 이름은 60자 이하로 입력해 주세요.";
+    titleInput.setAttribute("aria-invalid", "true");
+    updateTitleExperience();
+    titleInput.focus();
+    return false;
+  }
+  titleError.textContent = "";
+  titleInput.removeAttribute("aria-invalid");
+  updateTitleExperience();
+  return true;
 }
 
-titleNext.addEventListener("click", () => {
-    if (!validateTitle()) return;
+function getFormValues() {
+  return {
+    title: titleInput.value.trim(),
+    nickname: nicknameInput.value.trim(),
+    duration: form.querySelector('input[name="duration"]:checked').value,
+    qna: qnaOption.checked,
+    qnaCount: form.querySelector('input[name="qna-count"]:checked').value
+  };
+}
+
+function qnaText(plan) {
+  const costLevels = ["낮음", "보통", "높음"];
+  return plan.qna ? `${costLevels[Number(plan.qnaCount) - 1]} 수준 반영` : "미반영";
+}
+
+function updateSummary() {
+  const values = getFormValues();
+  document.querySelector("#summary-title").textContent = values.title;
+  document.querySelector("#summary-nickname").textContent = values.nickname || "입력 안 함";
+  document.querySelector("#summary-duration").textContent = `${values.duration}개월`;
+  document.querySelector("#summary-qna").textContent = qnaText(values);
+  saveError.textContent = "";
+  setSubmitState("idle", "");
+}
+
+function syncQnaOptions() {
+  const expanded = qnaOption.checked;
+  qnaOptions.hidden = !expanded;
+  qnaOptions.disabled = !expanded;
+  qnaOption.setAttribute("aria-expanded", String(expanded));
+}
+
+function setSubmitState(state, message) {
+  isSubmitting = state === "loading";
+  form.setAttribute("aria-busy", String(isSubmitting));
+  saveButton.disabled = isSubmitting;
+  saveButton.textContent = isSubmitting ? "저장하는 중..." : "재배 계획 저장하기";
+  submitStatus.textContent = message;
+  submitStatus.classList.toggle("is-success", state === "success");
+  submitStatus.classList.toggle("has-error", state === "error");
+  document.querySelector("#edit-info").disabled = isSubmitting;
+  document.querySelector("#edit-options").disabled = isSubmitting;
+}
+
+titleInput.addEventListener("input", () => {
+  if (titleInput.getAttribute("aria-invalid") === "true") {
+    validateTitle();
+  } else {
+    updateTitleExperience();
+  }
+});
+updateTitleExperience();
+
+nicknameInput.addEventListener("input", () => {
+  nicknameCount.textContent = `${nicknameInput.value.length} / 10자`;
+});
+
+qnaOption.addEventListener("change", syncQnaOptions);
+syncQnaOptions();
+
+document.querySelector("#info-next").addEventListener("click", () => {
+  if (validateTitle()) showStep(2);
+});
+document.querySelector("#option-prev").addEventListener("click", () => showStep(1));
+document.querySelector("#option-next").addEventListener("click", () => {
+  updateSummary();
+  showStep(3);
+});
+document.querySelector("#edit-info").addEventListener("click", () => showStep(1));
+document.querySelector("#edit-options").addEventListener("click", () => showStep(2));
+
+function saveCurrentPlan() {
+  const values = getFormValues();
+  saveError.textContent = "";
+  const duplicate = plans.some((plan) =>
+    plan.title === values.title &&
+    plan.nickname === values.nickname &&
+    plan.duration === values.duration &&
+    plan.qna === values.qna &&
+    (!values.qna || plan.qnaCount === values.qnaCount)
+  );
+  if (duplicate) {
+    saveError.textContent = "같은 조건의 재배 계획이 이미 있습니다. 내 계획에서 확인하거나, 취소된 계획이라면 ‘취소 되돌리기’를 눌러 주세요.";
+    return false;
+  }
+  const plan = {
+    id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    ...values,
+    cancelled: false,
+    createdAt: new Date().toISOString()
+  };
+  plans.unshift(plan);
+  if (!savePlans()) {
+    plans.shift();
+    return false;
+  }
+  renderPlans();
+  archiveStatus.textContent = `‘${plan.title}’ 재배 계획을 저장했습니다.`;
+  completeMessage.textContent = `‘${plan.title}’ 재배 계획을 내 계획에서 다시 열어볼 수 있습니다.`;
+  return true;
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  if (isSubmitting) return;
+
+  if (currentStep === 1) {
+    if (validateTitle()) showStep(2);
+    return;
+  }
+
+  if (currentStep !== 3) return;
+
+  saveError.textContent = "";
+
+  if (!validateTitle()) {
+    setSubmitState("idle", "");
     showStep(1);
+    titleInput.focus();
+    return;
+  }
+
+  setSubmitState("loading", "재배 계획을 저장하고 있습니다.");
+
+  // 수업용으로 저장 중 상태를 잠깐 보여 준 뒤 브라우저에 저장합니다.
+  window.setTimeout(() => {
+    if (saveCurrentPlan()) {
+      setSubmitState("success", "재배 계획을 저장했습니다.");
+      showStep(4);
+    } else {
+      setSubmitState(
+        "error",
+        saveError.textContent
+          ? "이미 저장한 계획을 확인하거나 조건을 수정한 뒤 다시 저장해 주세요."
+          : "저장하지 못했습니다. 브라우저 저장 공간을 확인한 뒤 다시 시도해 주세요."
+      );
+    }
+  }, 600);
 });
 
-durationRange.addEventListener("input", () => {
-    durationValue.value = durationValues[durationRange.value] + "개월";
+document.querySelector("#restart-button").addEventListener("click", () => {
+  if (isSubmitting) return;
+  form.reset();
+  syncQnaOptions();
+  nicknameCount.textContent = "0 / 10자";
+  titleError.textContent = "";
+  titleInput.removeAttribute("aria-invalid");
+  titleField.classList.remove("is-valid", "has-error");
+  updateTitleExperience();
+  saveError.textContent = "";
+  completeMessage.textContent = "";
+  setSubmitState("idle", "");
+  form.querySelectorAll(".summary-list dd").forEach((item) => {
+    item.textContent = "";
+  });
+  showStep(1);
+  titleInput.focus();
 });
 
-qnaOption.addEventListener("change", () => {
-    qnaOptions.hidden = !qnaOption.checked;
-});
-
-optionPrev.addEventListener("click", () => showStep(0));
-
-optionNext.addEventListener("click", () => {
-    formData.duration = durationValues[durationRange.value];
-    formData.qna = qnaOption.checked;
-    const count = document.querySelector('input[name="qna-count"]:checked');
-    formData.qnaCount = count.value;
-
-    const costLevels = ["낮음", "보통", "높음"];
-
-    summaryTitle.textContent = formData.title;
-    summaryDuration.textContent = formData.duration + "개월";
-    summaryQna.textContent = formData.qna
-        ? costLevels[Number(formData.qnaCount) - 1] + " 수준 반영"
-        : "미반영";
-
-    showStep(2);
-});
-
-summaryPrev.addEventListener("click", () => showStep(1));
-finishButton.addEventListener("click", () => showStep(3));
-restartButton.addEventListener("click", () => {
-    formData.title = "";
-    formData.duration = "6";
-    formData.qna = false;
-    formData.qnaCount = "2";
-    titleInput.value = "";
-    titleError.textContent = "";
-    titleInput.classList.remove("has-error");
-    durationRange.value = "1";
-    durationValue.value = "6개월";
-    qnaOption.checked = false;
-    qnaOptions.hidden = true;
-    document.querySelector('input[name="qna-count"][value="2"]').checked = true;
-    summaryTitle.textContent = "";
-    summaryDuration.textContent = "";
-    summaryQna.textContent = "";
-    showStep(0);
-});
-
-const planSaveButton = document.querySelector("#plan-save");
-const savedPlanSection = document.querySelector("#saved-plans");
-const savedPlanList = document.querySelector("#saved-plan-list");
-const savedPlanEmpty = document.querySelector("#saved-plan-empty");
-const savedPlanMessage = document.querySelector("#saved-plan-message");
-const savedPlanDetail = document.querySelector("#saved-plan-detail");
-const savedPlanDetailText = document.querySelector("#saved-plan-detail-text");
-const savedPlanClose = document.querySelector("#saved-plan-close");
-const completedPlanStep = document.querySelector('#training-flow .step[data-step="4"]');
-
-const savedPlans = [];
-let savedPlanSerial = 0;
-
-function showSavedPlanMessage(message, isError) {
-    savedPlanMessage.textContent = message;
-    savedPlanMessage.classList.toggle("is-error", isError);
+function createText(tag, className, content) {
+  const element = document.createElement(tag);
+  element.className = className;
+  element.textContent = content;
+  return element;
 }
 
-function renderSavedPlans() {
-    savedPlanList.textContent = "";
-    savedPlanEmpty.hidden = savedPlans.length > 0;
+function updateCurrentNav() {
+  const currentHash = window.location.hash;
 
-    savedPlans.forEach(function (plan) {
-        const item = document.createElement("li");
-        const name = document.createElement("strong");
-        name.className = "plan-name";
-        name.textContent = plan.title;
+  navLinks.forEach((link) => {
+    const current = currentHash
+    ? link.getAttribute("href") === currentHash
+    : link === navLinks[0];
 
-        const actions = document.createElement("div");
-        actions.className = "saved-plan-actions";
+    link.classList.toggle("is-current", current);
 
-        const openButton = document.createElement("button");
-        openButton.type = "button";
-        openButton.textContent = "내용 보기";
-
-        openButton.addEventListener("click", function () {
-            const levels = ["낮음", "보통", "높음"];
-            const cost = plan.qna
-                ? levels[Number(plan.qnaCount) - 1] + " 수준 반영"
-                : "미반영";
-
-            savedPlanDetailText.textContent = "작물 이름: " + plan.title
-                + "\n예측 기간: " + plan.duration + "개월"
-                + "\n생산비: " + cost;
-
-            savedPlanDetail.dataset.planId = String(plan.id);
-            savedPlanDetail.hidden = false;
-            showSavedPlanMessage("저장한 계획을 열었습니다.", false);
-            savedPlanDetail.scrollIntoView({ behavior: "smooth" });
-        });
-
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.textContent = "삭제";
-
-        deleteButton.addEventListener("click", function () {
-            const index = savedPlans.findIndex(function (item) {
-                return item.id === plan.id;
-            });
-
-            if (index === -1) return;
-
-            savedPlans.splice(index, 1);
-
-            if (savedPlanDetail.dataset.planId === String(plan.id)) {
-                savedPlanDetail.hidden = true;
-                savedPlanDetailText.textContent = "";
-            }
-
-            renderSavedPlans();
-            showSavedPlanMessage(plan.title + " 계획을 삭제했습니다.", false);
-        });
-
-        actions.append(openButton, deleteButton);
-        item.append(name, actions);
-        savedPlanList.append(item);
-    });
+    if (current) {
+      link.setAttribute("aria-current", "page");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  });
 }
 
-planSaveButton.addEventListener("click", function () {
-    if (completedPlanStep.hidden || !formData.title.trim()) {
-        showSavedPlanMessage(
-            "작물 이름과 예측 조건을 설정하고 완료한 뒤 저장해 주세요.",
-            true
-        );
-        return;
+window.addEventListener("hashchange", updateCurrentNav);
+updateCurrentNav();
+
+menuToggle.addEventListener("click", () => {
+  const isOpen = mainNav.classList.toggle("is-open");
+
+  menuToggle.textContent = isOpen ? "메뉴닫기" : "메뉴열기";
+  menuToggle.setAttribute("aria-expanded", String(isOpen));
+});
+
+navLinks.forEach((link) => {
+  link.addEventListener("click", () => {
+    mainNav.classList.remove("is-open");
+    menuToggle.textContent = "메뉴열기";
+    menuToggle.setAttribute("aria-expanded", "false");
+  });
+});
+
+function getVisiblePlans() {
+  return plans.filter((plan) => {
+    if (currentFilter === "all") return true;
+    if (currentFilter === "cancelled") return plan.cancelled;
+    return !plan.cancelled;
+  });
+}
+
+function renderPlans() {
+  const visiblePlans = getVisiblePlans();
+
+  planList.replaceChildren();
+  emptyState.hidden = visiblePlans.length !== 0;
+  planList.hidden = visiblePlans.length === 0;
+
+  const emptyTitle = emptyState.querySelector("h3");
+  const emptyDescription = emptyState.querySelector("p");
+  const emptyAction = emptyState.querySelector("a");
+
+  if (visiblePlans.length === 0) {
+    const filtered = currentFilter !== "all";
+    emptyTitle.textContent = filtered
+      ? "조건에 맞는 계획이 없습니다."
+      : "저장한 계획이 없습니다.";
+    emptyDescription.textContent = filtered
+      ? "조건을 바꾸거나, 새 계획을 만들어 보세요."
+      : "재배 계획을 만들어 저장하면 내 계획에서 확인할 수 있습니다.";
+    emptyAction.hidden = filtered;
+  }
+
+  planCount.textContent = String(visiblePlans.length);
+  planCount.setAttribute(
+    "aria-label",
+    `현재 표시 중인 재배 계획 ${visiblePlans.length}개`
+  );
+
+  visiblePlans.forEach((plan) => {
+    const card = document.createElement("li");
+    card.className = `plan-card${plan.cancelled ? " is-cancelled" : ""}`;
+    const top = document.createElement("div");
+    top.className = "plan-card-top";
+    top.append(createText("span", "plan-state", plan.cancelled ? "취소됨" : "저장됨"));
+    const date = new Date(plan.createdAt);
+    if (!Number.isNaN(date.getTime())) {
+      top.append(createText("time", "plan-date", new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" }).format(date)));
     }
+    card.append(top);
+    card.append(createText("h3", "plan-title", plan.title));
+    card.append(createText("p", "plan-meta", `${plan.duration}개월 재배 · 생산비 ${qnaText(plan)}`));
+    const actions = document.createElement("div");
+    actions.className = "plan-actions";
+    const openButton = createText("button", "button button-secondary", "내용 보기");
+    openButton.type = "button";
+    openButton.dataset.action = "open";
+    openButton.dataset.id = plan.id;
+    const toggleButton = createText("button", "button button-text", plan.cancelled ? "취소 되돌리기" : "계획 취소하기");
+    toggleButton.type = "button";
+    toggleButton.dataset.action = "toggle";
+    toggleButton.dataset.id = plan.id;
+    actions.append(openButton, toggleButton);
+    card.append(actions);
+    planList.append(card);
+  });
+}
 
-    const plan = {
-        id: ++savedPlanSerial,
-        title: formData.title.trim(),
-        duration: formData.duration,
-        qna: formData.qna,
-        qnaCount: formData.qnaCount
-    };
+filterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    currentFilter = button.dataset.filter;
 
-    const duplicated = savedPlans.some(function (item) {
-        return item.title === plan.title
-            && item.duration === plan.duration
-            && item.qna === plan.qna
-            && (!plan.qna || item.qnaCount === plan.qnaCount);
+    filterButtons.forEach((item) => {
+      const selected = item === button;
+      item.classList.toggle("is-active", selected);
+      item.setAttribute("aria-pressed", String(selected));
     });
-
-    if (duplicated) {
-        showSavedPlanMessage(
-            "같은 조건의 계획이 이미 있습니다. 목록에서 내용을 보거나, 다시 설정해 다른 조건을 저장해 주세요.",
-            true
-        );
-        savedPlanSection.scrollIntoView({ behavior: "smooth" });
-        return;
-    }
-
-    savedPlans.push(plan);
-    renderSavedPlans();
-
-    showSavedPlanMessage(
-        plan.title + " 계획을 저장했습니다. ‘내용 보기’를 눌러 확인하세요.",
-        false
-    );
-
-    savedPlanSection.scrollIntoView({ behavior: "smooth" });
+    renderPlans();
+  });
 });
 
-savedPlanClose.addEventListener("click", function () {
-    savedPlanDetail.hidden = true;
+planList.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
+  const plan = plans.find((item) => item.id === button.dataset.id);
+  if (!plan) return;
+
+  if (button.dataset.action === "open") {
+    document.querySelector("#dialog-title").textContent = plan.title;
+    document.querySelector("#dialog-status").textContent = plan.cancelled ? "취소된 계획입니다." : "저장된 계획입니다.";
+    document.querySelector("#dialog-nickname").textContent = plan.nickname || "입력 안 함";
+    document.querySelector("#dialog-duration").textContent = `${plan.duration}개월`;
+    document.querySelector("#dialog-qna").textContent = qnaText(plan);
+    planDialog.showModal();
+    return;
+  }
+
+  const wasCancelled = plan.cancelled;
+  plan.cancelled = !wasCancelled;
+  const persisted = savePlans();
+  renderPlans();
+  archiveStatus.textContent = persisted
+    ? `‘${plan.title}’ 재배 계획을 ${wasCancelled ? "다시 사용할 수 있습니다" : "취소했습니다"}.`
+    : "상태를 현재 화면에서 바꿨지만, 브라우저 저장 공간을 사용할 수 없어 새로고침하면 사라질 수 있습니다.";
+  const nextButton = [...planList.querySelectorAll('button[data-action="toggle"]')].find((item) => item.dataset.id === plan.id);
+  nextButton?.focus();
 });
 
-renderSavedPlans();
+document.querySelector("#dialog-close").addEventListener("click", () => planDialog.close());
+document.querySelector("#dialog-done").addEventListener("click", () => planDialog.close());
+
+const themeButton = document.querySelector("#theme-button");
+themeButton.addEventListener("click", () => {
+  const dark = document.body.classList.toggle("dark");
+  themeButton.textContent = dark ? "라이트 모드" : "다크 모드";
+  themeButton.setAttribute("aria-pressed", String(dark));
+});
+
+renderPlans();

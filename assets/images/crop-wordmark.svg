@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="124" viewBox="0 0 512 124">
+  <g fill="none" stroke="#2c6143" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M44 92V62"/>
+    <path d="M44 66C18 66 10 48 12 28C33 28 45 42 44 66Z" fill="#2c6143" stroke="none"/>
+    <path d="M44 57C45 32 62 18 84 18C84 44 66 58 44 57Z" fill="#2c6143" stroke="none"/>
+    <path d="M20 98H76"/>
+  </g>
+  <text x="104" y="82" fill="#2c6143" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="53" font-weight="800" letter-spacing="-2">작물 수익 예측</text>
+</svg>
