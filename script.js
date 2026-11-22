@@ -402,7 +402,7 @@ function renderPlans() {
 emptyState.querySelector("a").addEventListener("click", (event) => {
   if (currentFilter === "all") return;
   event.preventDefault();
-  const allButton = documnet.querySelector('[data-filter="all"]');
+  const allButton = document.querySelector('[data-filter="all"]');
   allButton.click();
   allButton.focus();
 });
