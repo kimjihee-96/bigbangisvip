@@ -143,9 +143,9 @@ function updateSummary() {
 
 function syncQnaOptions() {
   const expanded = qnaOption.checked;
+  qnaOption.setAttribute("aria-expanded", String(expanded));
   qnaOptions.hidden = !expanded;
   qnaOptions.disabled = !expanded;
-  qnaOption.setAttribute("aria-expanded", String(expanded));
 }
 
 function setSubmitState(state, message) {
@@ -198,7 +198,7 @@ function saveCurrentPlan() {
     (!values.qna || plan.qnaCount === values.qnaCount)
   );
   if (duplicate) {
-    saveError.textContent = "같은 조건의 재배 계획이 이미 있습니다. 내 계획에서 확인하거나, 취소된 계획이라면 ‘취소 되돌리기’를 눌러 주세요.";
+    saveError.textContent = "같은 내용의 재배 계획이 이미 저장되어 있습니다.";
     return false;
   }
   const plan = {
@@ -250,8 +250,8 @@ form.addEventListener("submit", (event) => {
       setSubmitState(
         "error",
         saveError.textContent
-          ? "이미 저장한 계획을 확인하거나 조건을 수정한 뒤 다시 저장해 주세요."
-          : "저장하지 못했습니다. 브라우저 저장 공간을 확인한 뒤 다시 시도해 주세요."
+          ? "‘이미 저장한 계획 확인하기’를 눌러 기존 계획을 확인해 주세요. 취소된 계획은 ‘취소 되돌리기’로 다시 사용할 수 있습니다. 다른 내용으로 저장하려면 ‘정보 수정’ 또는 ‘조건 수정’을 눌러 주세요."
+          : "브라우저에 재배 계획을 저장하지 못했습니다. 입력한 내용은 유지됩니다. 브라우저의 사이트 데이터 저장 허용 여부와 저장 공간을 확인한 뒤 ‘재배 계획 저장하기’를 다시 눌러 주세요."
       );
     }
   }, 600);
@@ -299,6 +299,10 @@ function updateCurrentNav() {
       link.removeAttribute("aria-current");
     }
   });
+
+  const currentLink = document.querySelector('.main-nav a[aria-current="page"]');
+  const pageName = currentLink ? currentLink.textContent.trim() : "홈";
+  document.title = pageName + " | 재배 계획 시뮬레이터";
 }
 
 window.addEventListener("hashchange", updateCurrentNav);
@@ -309,6 +313,15 @@ menuToggle.addEventListener("click", () => {
 
   menuToggle.textContent = isOpen ? "메뉴닫기" : "메뉴열기";
   menuToggle.setAttribute("aria-expanded", String(isOpen));
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || !mainNav.classList.contains("is-open")) return;
+
+  mainNav.classList.remove("is-open");
+  menuToggle.textContent = "메뉴열기";
+  menuToggle.setAttribute("aria-expanded", "false");
+  menuToggle.focus();
 });
 
 navLinks.forEach((link) => {
@@ -346,7 +359,9 @@ function renderPlans() {
     emptyDescription.textContent = filtered
       ? "조건을 바꾸거나, 새 계획을 만들어 보세요."
       : "재배 계획을 만들어 저장하면 내 계획에서 확인할 수 있습니다.";
-    emptyAction.hidden = filtered;
+    emptyAction.hidden = false;
+    emptyAction.textContent = filtered ? "전체 재배 계획 보기" : "재배 계획 만들러 가기";
+    emptyAction.href = filtered ? "#archive" : "#planner";
   }
 
   planCount.textContent = String(visiblePlans.length);
@@ -384,6 +399,14 @@ function renderPlans() {
   });
 }
 
+emptyState.querySelector("a").addEventListener("click", (event) => {
+  if (currentFilter === "all") return;
+  event.preventDefault();
+  const allButton = documnet.querySelector('[data-filter="all"]');
+  allButton.click();
+  allButton.focus();
+});
+
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     currentFilter = button.dataset.filter;
@@ -394,6 +417,17 @@ filterButtons.forEach((button) => {
       item.setAttribute("aria-pressed", String(selected));
     });
     renderPlans();
+
+    const count = getVisiblePlans().length;
+    const filterName = button.textContent.trim();
+
+   if (count > 0) {
+  archiveStatus.textContent = `${filterName}: 재배 계획 ${count}개가 표시됩니다.`;
+} else if (plans.length === 0) {
+  archiveStatus.textContent = "아직 저장한 재배 계획이 없습니다. ‘계획 만들기’에서 첫 계획을 저장해 보세요.";
+} else {
+  archiveStatus.textContent = `${filterName}: 해당하는 재배 계획이 없습니다. ‘전체’를 눌러 다른 계획을 확인해 보세요.`;
+}
   });
 });
 
@@ -420,8 +454,12 @@ planList.addEventListener("click", (event) => {
   archiveStatus.textContent = persisted
     ? `‘${plan.title}’ 재배 계획을 ${wasCancelled ? "다시 사용할 수 있습니다" : "취소했습니다"}.`
     : "상태를 현재 화면에서 바꿨지만, 브라우저 저장 공간을 사용할 수 없어 새로고침하면 사라질 수 있습니다.";
-  const nextButton = [...planList.querySelectorAll('button[data-action="toggle"]')].find((item) => item.dataset.id === plan.id);
-  nextButton?.focus();
+
+  const nextButton = [...planList.querySelectorAll('button[data-action="toggle"]')]
+  .find((item) => item.dataset.id === plan.id);
+
+  const selectedFilter = document.querySelector('.filter-button[aria-pressed="true"]');
+  (nextButton || selectedFilter)?.focus();
 });
 
 document.querySelector("#dialog-close").addEventListener("click", () => planDialog.close());

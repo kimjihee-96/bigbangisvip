@@ -12,6 +12,9 @@
   <script src="script.js?v=20261116-week9-final" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#top">
+    본문 바로가기
+  </a>
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="#top" aria-label="작물 수익 예측 맨 위로"><img src="assets/images/crop-wordmark.svg" alt="작물 수익 예측" width="512" height="124"></a>
@@ -32,7 +35,7 @@
     </div>
   </header>
 
-  <main id="top">
+  <main id="top" tabindex="-1">
     <section class="hero container" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow">Plan. Grow. Build Your Future.</p>
@@ -42,7 +45,9 @@
         <p class="hero-note">청년 농부를 위한 작물 수익 예측 서비스의 수업용 프로토타입입니다. 현재는 재배 계획을 저장하며, 실제 수익 계산은 진행하지 않습니다.</p>
       </div>
       <figure class="hero-image">
-        <img src="assets/images/farm.jpg" alt="농부와 농업 기술을 표현한 서비스 콘셉트 이미지" width="650" height="443">
+        <img src="assets/images/farm.jpg"
+        alt="농부와 농업 기술을 표현한 서비스 콘셉트 이미지"
+        width="650" height="443">
         <figcaption>작물 수익 예측 서비스 콘셉트 이미지</figcaption>
       </figure>
     </section>
@@ -79,7 +84,7 @@
               <label for="presentation-title">작물 이름 <span class="required">필수</span></label>
               <input id="presentation-title" name="title" type="text" required minlength="1" maxlength="60" placeholder="예: 감자, 고구마, 토마토" aria-describedby="title-help title-count title-error">
               <p id="title-help" class="field-help">작물 이름을 1자 이상 60자 이하로 입력해 주세요.</p>
-              <p id="title-count" class="field-help" aria-live="polite">0 / 60자</p>
+              <p id="title-count" class="field-help">0 / 60자</p>
               <p id="title-error" class="field-error" role="alert"></p>
             </div>
             <div class="field">
@@ -178,7 +183,10 @@
   </main>
 
   <dialog id="plan-dialog" class="plan-dialog" aria-labelledby="dialog-title">
-    <div class="dialog-top"><p class="eyebrow">저장한 계획</p><button id="dialog-close" class="icon-button" type="button" aria-label="닫기">×</button></div>
+    <div class="dialog-top">
+      <p class="eyebrow">저장한 계획</p>
+      <button id="dialog-close" class="icon-button" type="button"
+       aria-label="계획 상세 닫기">×</button></div>
     <h2 id="dialog-title"></h2>
     <p id="dialog-status" class="dialog-status"></p>
     <dl class="summary-list">
